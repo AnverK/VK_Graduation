@@ -1,39 +1,33 @@
-import numpy as np
 import pandas as pd
+from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import cross_validate, GridSearchCV
-from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, mean_absolute_error
-from src.utils import zip_with_p_value, shift_on_zero_value, discretisize_metric, find_index_of_nearest
+
 from src.MetricLinearRegression import MetricLinearRegression
-import matplotlib.pyplot as plt
+from src.utils import *
 
 
-def painted_accuracy(estimator, X, y_true):
-    # n_samples, n_features = X.shape
-    # painted_inds = np.argwhere(y_true[:, 1] > estimator.critical_p_value)
-    # y_true = y_true[painted_inds, 0].flatten()
-    # X = X[painted_inds].reshape(len(painted_inds), n_features)
-    y_true = discretisize_metric(y_true[:, 0], estimator.threshold)
+def neg_mean_error(estimator, X, y_true):
+    y_true = discretize_metric(y_true[:, 0], estimator.pos_threshold, estimator.neg_threshold)
     y_pred = estimator.predict(X)
-    print(y_true)
-    print(y_pred)
+    # print(y_true)
+    # print(y_pred)
     return -mean_absolute_error(y_true, y_pred)
 
 
 def grid_search(X, y):
-    lin_reg = MetricLinearRegression(threshold=0.035)
+    lin_reg = MetricLinearRegression()
     grid_reg = np.linspace(0, 10, num=50)
     grid_beta = np.linspace(0, 10, num=50)
-    # grid_threshold = np.linspace(0, 0.1, num=10)
     params = {'l2_reg': grid_reg, 'beta': grid_beta}
-    gs = GridSearchCV(lin_reg, param_grid=params, scoring=painted_accuracy, iid=False, cv=5, verbose=1, n_jobs=-1)
+    gs = GridSearchCV(lin_reg, param_grid=params, scoring=neg_mean_error, iid=False, cv=5, verbose=1, n_jobs=-1)
     gs.fit(X, y)
     print(gs.best_score_)
     print(gs.best_params_)
 
 
-def evaluate_model(X, y, l2_reg, beta, threshold):
-    lin_reg = MetricLinearRegression(l2_reg, beta, threshold=threshold)
-    scores = cross_validate(lin_reg, X, y, scoring=painted_accuracy, cv=20, n_jobs=-1)
+def evaluate_model(X, y, l2_reg, beta, pos_threshold, neg_threshold):
+    lin_reg = MetricLinearRegression(l2_reg, beta, pos_threshold=pos_threshold, neg_threshold=neg_threshold)
+    scores = cross_validate(lin_reg, X, y, scoring=neg_mean_error, cv=5, n_jobs=-1)
     print(np.mean(scores['test_score']))
 
 
@@ -53,22 +47,21 @@ X = zipped_X[:, :, 0]
 y = zipped_y[:, 2, :]
 
 y = shift_on_zero_value(y)
-# threshold = max(np.abs(y[np.argwhere(y[:, 1] < 99), 0]))
-# print(threshold)
-# threshold = 0.1
-# print(y)
 # grid_search(X, y)
 
 # short_term = zipped_X[:, 15]
 # x = [0, 100]
-# threshold = 0.035
-# y1 = [threshold, threshold]
-# y2 = [-threshold, -threshold]
+# pos_threshold = get_positive_threshold(y, 99)
+# neg_threshold = get_negative_threshold(y, 99)
+# print(pos_threshold, neg_threshold)
+# y1 = [pos_threshold, pos_threshold]
+# y2 = [neg_threshold, neg_threshold]
 # plt.plot(x, y1, 'b')
 # plt.plot(x, y2, 'b')
 # plt.plot(y[:, 1], y[:, 0], 'r.')
 # plt.show()
-l2_reg = 3.8775510204081636
+pos_threshold = 0.035
+neg_threshold = -0.035
+l2_reg = 0
 beta = 0
-threshold = 0.035
-evaluate_model(X, y, l2_reg, beta, threshold)
+evaluate_model(X, y, l2_reg, beta, pos_threshold, neg_threshold)
