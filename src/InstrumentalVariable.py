@@ -1,33 +1,25 @@
 import numpy as np
 from sklearn.base import BaseEstimator
-from scipy.optimize import minimize
+from src.utils import *
 
 
-class MetricLinearRegression(BaseEstimator):
-    def __init__(self, beta=1, critical_p_value=99, coef=None):
-        self.beta = beta
+class InstrumentalVariable(BaseEstimator):
+    def __init__(self, critical_p_value=95, l2_reg=None, coef=None):
         self.critical_p_value = critical_p_value
+        self.coef = coef
+        self.l2_reg = l2_reg
 
-    def __objective_function(self, w, X_e, X_u, y_e):
-        e_term = sum([np.dot(w, x) * y for x, y in zip(X_e, y_e)])
-        u_term = sum([abs(np.dot(w, x)) for x in X_e])
-        return -e_term / len(X_e) - self.beta * u_term / len(X_u)
+    def __handle_features(self, X):
+        return np.array(list(map(lambda metric: apply_l0_regularization(metric, self.critical_p_value), X)))[:, :, 0]
 
     def fit(self, X, y):
-        n_samples, n_features = X.shape
-        painted_experiments = np.argwhere(y[:, 1] > self.critical_p_value)
-        uncertain_experiments = np.argwhere(y[:, 1] <= self.critical_p_value)
-        X_painted = X[painted_experiments].reshape(len(painted_experiments), n_features)
-        y_painted = y[painted_experiments, 0].flatten()
-        X_uncertain = X[uncertain_experiments].reshape(len(uncertain_experiments), n_features)
-
-        if self.coef is None:
-            self.coef = np.zeros(n_features)
-
-        result = minimize(self.__objective_function, self.coef, (X_painted, X_uncertain, y_painted),
-                          method='L-BFGS-B')
-        self.coef = result.x
-        print(self.coef)
+        X = self.__handle_features(X)
+        if self.l2_reg is None:
+            self.coef = np.linalg.lstsq(X, y, rcond=None)[0]
+        else:
+            n_samples, n_features = X.shape
+            self.coef = np.linalg.solve(X.T.matmul(X) + self.l2_reg * np.identity(n_features), X.T.dot(y))
 
     def predict(self, X):
-        return np.sign(np.dot(self.coef, X.T))
+        X = self.__handle_features(X)
+        return np.dot(self.coef, X.T)

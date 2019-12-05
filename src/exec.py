@@ -51,8 +51,8 @@ y = shift_on_zero_value(y)
 
 # short_term = zipped_X[:, 15]
 # x = [0, 100]
-# pos_threshold = get_positive_threshold(y, 99)
-# neg_threshold = get_negative_threshold(y, 99)
+pos_threshold = get_positive_threshold(y)
+neg_threshold = get_negative_threshold(y)
 # print(pos_threshold, neg_threshold)
 # y1 = [pos_threshold, pos_threshold]
 # y2 = [neg_threshold, neg_threshold]
@@ -60,8 +60,8 @@ y = shift_on_zero_value(y)
 # plt.plot(x, y2, 'b')
 # plt.plot(y[:, 1], y[:, 0], 'r.')
 # plt.show()
-pos_threshold = 0.035
-neg_threshold = -0.035
+# pos_threshold = 0.035
+# neg_threshold = -0.035
 l2_reg = 0
 beta = 0
 evaluate_model(X, y, l2_reg, beta, pos_threshold, neg_threshold)
