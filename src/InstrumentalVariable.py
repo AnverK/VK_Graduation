@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator
+
 from src.utils import *
 
 
@@ -18,7 +19,7 @@ class InstrumentalVariable(BaseEstimator):
             self.coef = np.linalg.lstsq(X, y, rcond=None)[0]
         else:
             n_samples, n_features = X.shape
-            self.coef = np.linalg.solve(X.T.matmul(X) + self.l2_reg * np.identity(n_features), X.T.dot(y))
+            self.coef = np.linalg.solve(X.T.dot(X) + self.l2_reg * np.identity(n_features), X.T.dot(y))
 
     def predict(self, X):
         X = self.__handle_features(X)
