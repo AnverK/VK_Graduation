@@ -57,7 +57,9 @@ def read_data(shift=True):
     s_metrics_p = zip_with_p_value(short_metrics_raw)
 
     if shift:
-        s_metrics_p[:] = [shift_on_zero_value(short_term_metric) for short_term_metric in s_metrics_p[:]]
-        l_metrics_p[:] = [shift_on_zero_value(long_term_metric) for long_term_metric in l_metrics_p[:]]
+        s_metrics_p = np.array(
+            [shift_on_zero_value(short_metric) for short_metric in s_metrics_p.swapaxes(0, 1)]).swapaxes(0, 1)
+        l_metrics_p = np.array(
+            [shift_on_zero_value(long_metric) for long_metric in l_metrics_p.swapaxes(0, 1)]).swapaxes(0, 1)
 
     return s_metrics_p, l_metrics_p
