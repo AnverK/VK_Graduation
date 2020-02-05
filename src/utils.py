@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 from sklearn.svm import OneClassSVM
+import os
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def zip_with_p_value(X):
@@ -46,7 +49,7 @@ def get_outlier_experiments(X, nu=0.1, gamma='scale'):
 
 
 def read_data(shift=True):
-    dataset_path = '../dataset/feed_top_ab_tests_pool_dataset.csv'
+    dataset_path = os.path.join(ROOT_DIR, 'dataset', 'feed_top_ab_tests_pool_dataset.csv')
 
     df = pd.read_csv(dataset_path)
     data = df.to_numpy()

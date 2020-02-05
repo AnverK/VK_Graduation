@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator
-from sklearn.linear_model import Ridge, LinearRegression
+from sklearn.linear_model import Ridge, LinearRegression, Lasso
 from src.utils import *
 
 
@@ -19,7 +19,7 @@ class InstrumentalVariable(BaseEstimator):
         if self.l2_reg is None:
             model = LinearRegression()
         else:
-            model = Ridge(self.l2_reg, solver='lsqr')
+            model = Lasso(self.l2_reg, max_iter=1e4, selection='random')
         model.fit(X, y)
         self.coef_ = model.coef_
         self.intercept_ = model.intercept_
