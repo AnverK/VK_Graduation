@@ -1,4 +1,4 @@
-from src.causality.trees.scores import mutual_info
+from causality.greedyBuilder.scores import mutual_info
 
 
 class MemoizedScores:

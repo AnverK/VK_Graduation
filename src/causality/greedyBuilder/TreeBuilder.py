@@ -1,5 +1,5 @@
 from scipy.spatial.distance import pdist, squareform
-from src.causality.trees.scores import mutual_info_pairwise
+from causality.greedyBuilder.scores import mutual_info_pairwise
 import networkx as nx
 
 

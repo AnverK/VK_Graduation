@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.linear_model import Ridge, LinearRegression, Lasso
-from src.utils import *
+from utils import *
 
 
 class InstrumentalVariable(BaseEstimator):

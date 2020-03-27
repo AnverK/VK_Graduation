@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from sklearn.base import BaseEstimator
 
-from src.utils import discretize_metric, get_positive_threshold, get_negative_threshold
+from utils import discretize_metric, get_positive_threshold, get_negative_threshold
 
 
 class MetricLinearRegression(BaseEstimator):

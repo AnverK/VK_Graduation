@@ -1,10 +1,9 @@
-from src.causality.trees.TreeBuilder import TreeBuilder
-from src.causality.trees.OperationType import OperationType
-from src.causality.trees.MemoizedScores import MemoizedScores
+from causality.greedyBuilder.TreeBuilder import TreeBuilder
+from causality.greedyBuilder.OperationType import OperationType
+from causality.greedyBuilder.MemoizedScores import MemoizedScores
 from itertools import combinations
 import networkx as nx
 from time import perf_counter
-import numpy as np
 from math import log2
 
 
@@ -93,7 +92,7 @@ class GraphBuilder:
             self.cur_graph = TreeBuilder().build_tree(data)
             assert nx.is_directed_acyclic_graph(self.cur_graph)
         start = perf_counter()
-        self.base_penalty = log2(n_samples) / 2
+        # self.base_penalty = log2(n_samples) / 2
         self.base_penalty = 0
         # self.penalty = self.base_penalty * (n_features - np.count_nonzero(self.cur_graph.in_degree))
         for i in range(100):

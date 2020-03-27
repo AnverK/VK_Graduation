@@ -47,17 +47,26 @@ def get_outlier_experiments(X, nu=0.1, gamma='scale'):
     pred = svm.fit_predict(X, None)
     return np.argwhere(pred == -1).flatten()
 
+def read_metrics(df, short=True):
+    if short:
+        pattern = 'short_term_'
+    else:
+        pattern = 'long_term_'
+    metrics_p = []
+    n_metrics = len(list(filter(lambda s: s.startswith(pattern), df.columns))) // 2
+    for i in range(n_metrics):
+        value = pattern + str(i)
+        p_value = value + '_p_value'
+        metrics_p.append(list(zip(df.get(value), df.get(p_value))))
+    return np.array(metrics_p).swapaxes(0, 1)
 
-def read_data(shift=True):
-    dataset_path = os.path.join(ROOT_DIR, 'dataset', 'feed_top_ab_tests_pool_dataset.csv')
+
+def read_data(dataset_name, shift=True):
+    dataset_path = os.path.join(ROOT_DIR, 'dataset', dataset_name)
 
     df = pd.read_csv(dataset_path)
-    data = df.to_numpy()
-    LONG_TERM_COUNT = 4
-    long_metrics_raw = data[:, :LONG_TERM_COUNT * 2]
-    l_metrics_p = zip_with_p_value(long_metrics_raw)
-    short_metrics_raw = data[:, LONG_TERM_COUNT * 2:-1]
-    s_metrics_p = zip_with_p_value(short_metrics_raw)
+    l_metrics_p = read_metrics(df, short=False)
+    s_metrics_p = read_metrics(df, short=True)
 
     if shift:
         s_metrics_p = np.array(
