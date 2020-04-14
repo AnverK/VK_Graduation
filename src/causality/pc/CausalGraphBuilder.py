@@ -1,29 +1,15 @@
 import numpy as np
+from causality.pc.PagEdge import PagEdge, ArrowType
 from rpy2.robjects.packages import importr
 import rpy2.robjects.numpy2ri
 import rpy2.rinterface as rinterface
 import rpy2.robjects as ro
 import rpy2.rlike.container as rlc
 import pygraphviz as pgv
-from enum import Enum
 
 rpy2.robjects.numpy2ri.activate()
 rinterface.initr()
 pcalg = importr('pcalg')
-
-
-class ArrowType(Enum):
-    CIRCLE = 1
-    ARROW = 2
-    NONE = 3
-
-
-class Edge:
-    def __init__(self, v_from, v_to, tail, head):
-        self.v_from = v_from
-        self.v_to = v_to
-        self.tail_type = ArrowType(tail)
-        self.head_type = ArrowType(head)
 
 
 class CausalGraphBuilder:
@@ -58,7 +44,7 @@ class CausalGraphBuilder:
             for j in range(i + 1, n):
                 if array[i][j] == 0:
                     continue
-                edges.append(Edge(i, j, array[j][i], array[i][j]))
+                edges.append(PagEdge(i, j, array[j][i], array[i][j]))
         return edges
 
     @staticmethod
@@ -69,9 +55,9 @@ class CausalGraphBuilder:
         for i, r_edges in enumerate(r_edge_list):
             for j in r_edges[0]:
                 if j - 1 < i and (j - 1, i) in edges:
-                    edges[j - 1, i] = Edge(i, j - 1, ArrowType.ARROW, ArrowType.ARROW)
+                    edges[j - 1, i] = PagEdge(j - 1, i, ArrowType.ARROW, ArrowType.ARROW)
                 else:
-                    edges[i, j - 1] = Edge(i, j - 1, ArrowType.NONE, ArrowType.ARROW)
+                    edges[i, j - 1] = PagEdge(i, j - 1, ArrowType.NONE, ArrowType.ARROW)
         return edges.values()
 
     @staticmethod
@@ -109,6 +95,11 @@ class CausalGraphBuilder:
                             verbose=verbose)
             g = res.slots['amat']
             self.edges = self._from_array_to_edges(np.array(g, dtype=int))
+        elif self.algorithm == 'fci+':
+            res = pcalg.fciPlus(suffStat=indep_test_args, indepTest=indep_test, p=self.n_nodes, alpha=self.p_value,
+                                verbose=verbose)
+            g = res.slots['amat']
+            self.edges = self._from_array_to_edges(np.array(g, dtype=int))
         else:
             res = pcalg.pc(suffStat=indep_test_args, indepTest=indep_test, p=self.n_nodes, alpha=self.p_value,
                            skel_method="stable.fast",
@@ -142,3 +133,7 @@ class CausalGraphBuilder:
             edge.attr['arrowhead'] = self._orient_pag(edge_info.head_type)
             edge.attr['arrowtail'] = self._orient_pag(edge_info.tail_type)
         G.draw(graph_path, prog='dot')
+
+    def get_edges(self):
+        assert self.edges is not None, 'Graph should be built by fit() function'
+        return self.edges
