@@ -15,6 +15,7 @@ class CausalGraphBuilder:
 
     def __init__(self, algorithm='fci', indep_test='gauss', indep_test_args=None, p_value=0.01, log_path=None,
                  num_cores=1):
+        self.sepset = None
         self.edges = None
         self.n_nodes = None
         self.algorithm = algorithm
@@ -97,32 +98,23 @@ class CausalGraphBuilder:
                            verbose=verbose,
                            numCores=self.num_cores)
             self.edges = self._from_r_graph_to_edges(res)
-
-    def draw(self, title, graph_path, labels=None, colors=None):
-        assert self.edges is not None, 'Graph should be built by fit() function before drawing'
-        n = self.n_nodes
-        if labels is None:
-            labels = list(map(str, range(n)))
-        if colors is None:
-            colors = ['green'] * n
-
-        G = pgv.AGraph(directed=True)
-        G.graph_attr['label'] = title
-        G.graph_attr['labelfontsize'] = 18
-        for i in range(n):
-            G.add_node(i)
-            G.get_node(i).attr['label'] = labels[i]
-            G.get_node(i).attr['fillcolor'] = colors[i]
-            G.get_node(i).attr['style'] = 'filled'
-
-        for edge_info in self.edges:
-            G.add_edge(edge_info.v_from, edge_info.v_to)
-            edge = G.get_edge(edge_info.v_from, edge_info.v_to)
-            edge.attr['dir'] = 'both'
-            edge.attr['arrowhead'] = self._orient_pag(edge_info.head_type)
-            edge.attr['arrowtail'] = self._orient_pag(edge_info.tail_type)
-        G.draw(graph_path, prog='dot')
+        self.sepset = self.extract_sepsets(res)
 
     def get_edges(self):
         assert self.edges is not None, 'Graph should be built by fit() function'
         return self.edges
+
+    def get_sepsets(self):
+        assert self.sepset is not None, 'Graph should be built by fit() function'
+        return self.sepset
+
+    @staticmethod
+    def extract_sepsets(res):
+        sepset = res.slots['sepset']
+        py_sepset = dict()
+        for v, other_v in enumerate(list(sepset)):
+            for u, sep in enumerate(list(other_v)):
+                if sep == rpy2.robjects.NULL:
+                    continue
+                py_sepset[(min(u, v), max(u, v))] = set([k - 1 for k in list(sep)])
+        return py_sepset
