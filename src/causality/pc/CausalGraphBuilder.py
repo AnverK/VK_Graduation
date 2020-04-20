@@ -5,7 +5,6 @@ import rpy2.robjects.numpy2ri
 import rpy2.rinterface as rinterface
 import rpy2.robjects as ro
 import rpy2.rlike.container as rlc
-import pygraphviz as pgv
 
 rpy2.robjects.numpy2ri.activate()
 rinterface.initr()
@@ -59,16 +58,6 @@ class CausalGraphBuilder:
                 else:
                     edges[i, j - 1] = PagEdge(i, j - 1, ArrowType.NONE, ArrowType.ARROW)
         return edges.values()
-
-    @staticmethod
-    def _orient_pag(arrow_type):
-        if arrow_type == ArrowType.CIRCLE:
-            return 'odot'
-        elif arrow_type == ArrowType.ARROW:
-            return 'normal'
-        else:
-            assert arrow_type == ArrowType.NONE
-            return 'none'
 
     def fit(self, X):
         verbose = self.log_path is not None

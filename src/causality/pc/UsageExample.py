@@ -3,6 +3,7 @@ import numpy as np
 
 from causality.pc.CausalGraphBuilder import CausalGraphBuilder
 from causality.pc.LogParser import LogParser
+from causality.pc.PagDrawer import PagDrawer
 import utils
 
 # ====================================================================================================================
@@ -48,7 +49,7 @@ for i in range(n_long_metrics):
 for i in range(n_short_metrics):
     labels.append('short_' + str(i))
     colors.append('green')
-builder.draw(graph_title, graph_path, labels, colors)
+PagDrawer.draw(builder.get_edges(), metrics.shape[1], graph_title, graph_path, labels, colors)
 
 # ====================================================================================================================
 
