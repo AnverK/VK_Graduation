@@ -24,5 +24,18 @@ class PagEdge:
             assert arrow_type == ArrowType.NONE
             return 'none'
 
+    @staticmethod
+    def to_regular_edge(pag_edge):
+        return (pag_edge.v_from, pag_edge.v_to)
+
     def __str__(self):
         return "({}, {}): ({}, {})".format(self.v_from, self.v_to, self.tail_type, self.head_type)
+
+    def __eq__(self, other):
+        if not isinstance(other, PagEdge):
+            return False
+        if self.v_from == other.v_from and self.v_to == other.v_to:
+            return self.head_type == other.head_type and self.tail_type == other.tail_type
+        if self.v_from == other.v_to and self.v_to == other.v_from:
+            return self.head_type == other.tail_type and self.tail_type == other.head_type
+        return False
