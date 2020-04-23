@@ -1,5 +1,5 @@
 import numpy as np
-from causality.pc.PagEdge import PagEdge, ArrowType
+from causality.pc.pag.PagEdge import PagEdge, ArrowType
 from rpy2.robjects.packages import importr
 import rpy2.robjects.numpy2ri
 import rpy2.rinterface as rinterface

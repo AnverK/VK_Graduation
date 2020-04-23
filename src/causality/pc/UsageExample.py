@@ -3,7 +3,7 @@ import numpy as np
 
 from causality.pc.CausalGraphBuilder import CausalGraphBuilder
 from causality.pc.LogParser import LogParser
-from causality.pc.PagDrawer import PagDrawer
+from causality.pc.pag.PagDrawer import PagDrawer
 import utils
 
 # ====================================================================================================================

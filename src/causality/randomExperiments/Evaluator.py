@@ -1,4 +1,4 @@
-from causality.pc.PagEdge import PagEdge, ArrowType
+from causality.pc.pag.PagEdge import PagEdge, ArrowType
 import networkx as nx
 
 

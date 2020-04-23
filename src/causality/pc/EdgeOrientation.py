@@ -1,5 +1,5 @@
 import networkx as nx
-from causality.pc.PagEdge import PagEdge, ArrowType
+from causality.pc.pag.PagEdge import PagEdge, ArrowType
 
 
 class EdgeOrientation:

@@ -1,5 +1,5 @@
 import pygraphviz as pgv
-from causality.pc.PagEdge import PagEdge
+from causality.pc.pag.PagEdge import PagEdge
 
 
 class PagDrawer:
