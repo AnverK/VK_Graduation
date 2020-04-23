@@ -1,4 +1,4 @@
-from causality.pc.pag.PagEdge import PagEdge, ArrowType
+from causality.pc.pag.PagEdge import ArrowType
 import networkx as nx
 
 
@@ -25,7 +25,7 @@ class PagConverter:
         for edge in pag_edges:
             if edge.head_type != ArrowType.NONE:
                 edges.append((edge.v_from, edge.v_to))
-            elif edge.tail_type != ArrowType.NONE:
+            if edge.tail_type != ArrowType.NONE:
                 edges.append((edge.v_to, edge.v_from))
         return edges
 
@@ -77,12 +77,12 @@ class PagConverter:
         if self.strictly_directed is None:
             self.strictly_directed = nx.DiGraph()
             self.strictly_directed.add_nodes_from(range(self.n_nodes))
-            self.strictly_directed = self.pag_to_strictly_directed(self.pag_edges)
+            self.strictly_directed.add_edges_from(self.pag_to_strictly_directed(self.pag_edges))
         return self.strictly_directed
 
     def get_softly_directed(self):
         if self.softly_directed is None:
             self.softly_directed = nx.DiGraph()
             self.softly_directed.add_nodes_from(range(self.n_nodes))
-            self.softly_directed = self.pag_to_softly_directed(self.pag_edges)
+            self.softly_directed.add_edges_from(self.pag_to_softly_directed(self.pag_edges))
         return self.softly_directed
