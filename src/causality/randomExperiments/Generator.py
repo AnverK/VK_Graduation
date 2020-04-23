@@ -1,6 +1,7 @@
 import numpy as np
 from causality.pc.CausalGraphBuilder import CausalGraphBuilder
-from causality.randomExperiments.Evaluator import Evaluator
+from causality.pc.pag.PagConverter import PagConverter
+from causality.randomExperiments.DistanceEvaluator import DistanceEvaluator
 
 
 class Generator:
@@ -17,7 +18,7 @@ class Generator:
     def __next__(self):
         n_samples, n_features = self.X.shape
 
-        n_used = np.random.randint(10, n_features + 1)
+        n_used = np.random.randint(6, n_features + 1)
         used_metrics_ind = np.random.choice(n_features, n_used, replace=False)
         used_metrics = self.X[:, used_metrics_ind]
 
@@ -29,10 +30,23 @@ class Generator:
 
         model = CausalGraphBuilder(algorithm='fci+', p_value=self.sig_level, num_cores=4)
         model.fit(metrics)
-        evaluator = Evaluator(model.get_edges(), n_features + 1, 0)
-        dists = {i: 0 for i in range(n_features)}
-        eval_dists = evaluator.undirected_distances()
-        eval_dists = {k - 1: v for k, v in eval_dists.items()}
-        for i, ind in enumerate(used_metrics_ind):
-            dists[ind] = eval_dists[i]
-        return dists
+
+        converter = PagConverter(model.get_edges(), n_used + 1)
+        stat_names = ['undirected_distances',
+                      'softly_directed_distances',
+                      'strictly_directed_distances']
+
+        graphs = [converter.get_undirected(),
+                  converter.get_softly_directed(),
+                  converter.get_strictly_directed()]
+
+        inf_dist = 1e6
+        all_dists = {}
+        for stat_ind, stat_name in enumerate(stat_names):
+            evaluator = DistanceEvaluator(graphs[stat_ind], 0, inf_dist=inf_dist)
+            graph_dists = {i: 0 for i in range(n_features)}
+            eval_dists = evaluator.get_distances()
+            for i, ind in enumerate(used_metrics_ind):
+                graph_dists[ind] = eval_dists[i + 1]  # because target node is 0, so we actually start from 1
+            all_dists[stat_name] = graph_dists
+        return all_dists

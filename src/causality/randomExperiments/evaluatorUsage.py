@@ -1,5 +1,6 @@
 import numpy as np
 import utils
+from collections import defaultdict
 
 # ====================================================================================================================
 
@@ -29,11 +30,22 @@ long_metrics = np.delete(long_metrics, removed_long, axis=1)
 # ====================================================================================================================
 
 envGenerator = Generator(short_metrics, long_metrics)
-sum_m = {i: 0 for i in range(short_metrics.shape[1])}
-print(sum_m)
-for k, m in enumerate(envGenerator):
+all_dists = defaultdict(lambda: {i: 0 for i in range(short_metrics.shape[1])})
+# sum_dists = {i: 0 for i in range(short_metrics.shape[1])}
+# sum_disconnections = {i: 0 for i in range(short_metrics.shape[1])}
+for k, all_stats in enumerate(envGenerator):
     print(k)
-    if k == 100:
+    for stat_name, stat in all_stats.items():
+        cur_dists = all_dists[stat_name]
+        all_dists[stat_name] = {i: cur_dists[i] + stat[i] for i in range(short_metrics.shape[1])}
+
+    if k % 100 == 0:
+        for stat_name, stat in all_dists.items():
+            print(stat_name, {k: v for k, v in sorted(stat.items(), key=lambda item: item[1])})
+    if k == 1000:
         break
-    sum_m = {i: sum_m[i] + m[i] for i in range(short_metrics.shape[1])}
-    print(sum_m)
+    # print({k: v for k, v in reversed(sorted(sum_disconnections.items(), key=lambda item: item[1]))})
+    # sum_dists = {i: sum_dists[i] + dists[i] for i in range(short_metrics.shape[1])}
+    # sum_disconnections = {i: sum_disconnections[i] + disconnections[i] for i in range(short_metrics.shape[1])}
+# print({k: v for k, v in sorted(sum_dists.items(), key=lambda item: item[1])})
+# print({k: v for k, v in reversed(sorted(sum_disconnections.items(), key=lambda item: item[1]))})
