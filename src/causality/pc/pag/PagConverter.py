@@ -24,6 +24,16 @@ class PagConverter:
         return edges
 
     @staticmethod
+    def pag_to_directed(pag_edges):
+        edges = []
+        for edge in pag_edges:
+            if edge.head_type != ArrowType.NONE:
+                edges.append((edge.v_from, edge.v_to))
+            if edge.tail_type != ArrowType.NONE:
+                edges.append((edge.v_to, edge.v_from))
+        return edges
+
+    @staticmethod
     def pag_to_softly_directed(pag_edges):
         edges = []
         for edge in pag_edges:
