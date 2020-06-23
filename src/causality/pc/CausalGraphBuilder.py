@@ -5,6 +5,7 @@ import rpy2.robjects.numpy2ri
 import rpy2.rinterface as rinterface
 import rpy2.robjects as ro
 import rpy2.rlike.container as rlc
+np.seterr(all='raise')
 
 rpy2.robjects.numpy2ri.activate()
 rinterface.initr()
@@ -53,6 +54,8 @@ class CausalGraphBuilder:
         r_edge_list = g.slots['edgeL']
         edges = {}
         for i, r_edges in enumerate(r_edge_list):
+            if r_edges == rpy2.robjects.NULL:
+                return edges.values()
             for j in r_edges[0]:
                 if j - 1 < i and (j - 1, i) in edges:
                     edges[j - 1, i] = PagEdge(j - 1, i, ArrowType.ARROW, ArrowType.ARROW)
@@ -108,8 +111,12 @@ class CausalGraphBuilder:
         assert self.sepset is not None, 'Graph should be built by fit() function'
         return self.sepset
 
-    @staticmethod
-    def extract_sepsets(res):
+    def extract_sepsets(self, res):
+        if self.algorithm == 'fci+':
+            # See my PR here: https://github.com/cran/pcalg/pull/3
+            # If you don't have too much variables, please use fci instead.
+            # Otherwise, you can try PC algorithm and my orientation algorithm.
+            raise Exception("FCI+ doesn't provide separation sets")
         sepset = res.slots['sepset']
         py_sepset = dict()
         for v, other_v in enumerate(list(sepset)):
