@@ -1,78 +1,39 @@
-from scipy.spatial.distance import pdist, squareform, cdist
+from scipy.spatial import KDTree
 from scipy.special import digamma
-from sklearn.feature_selection import mutual_info_regression
+from sklearn.neighbors import KDTree
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
+import networkx as nx
+from math import log
 
 
-def mutual_info_pairwise(x, y):
-    return mutual_info_regression(x.reshape(-1, 1), y)[0]
+def avg_digamma(points, dvec):
+    tree = KDTree(points, metric='chebyshev')
+    dvec = dvec - 1e-15
+    num_points = tree.query_radius(points, dvec, count_only=True)
+    return np.mean(digamma(num_points))
 
 
-def mutual_info(X, y):
-    if X.shape[1] == 0:
-        return 0
-    # if X.shape[1] == 1:
-    #     return mutual_info_pairwise(X, y)
-    return compute_mi_cc_2(X, y.reshape(-1, 1), 3)
+def mi(x, y, k=3):
+    points = [x, y]
+    points = np.hstack(points)
+    tree = KDTree(points, metric='chebyshev')
+    dvec = tree.query(points, k=k + 1)[0][:, k]
+    a, b, c, d = avg_digamma(x, dvec), avg_digamma(y, dvec), digamma(k), digamma(len(x))
+    return -a - b + c + d
 
 
-def compute_mi_cc_1(x, y, n_neighbors):
-    n_samples = len(y)
-
-    dist_x = pdist(x)
-    dist_y = pdist(y)
-    dist_z = squareform(np.maximum(dist_x, dist_y), force='tomatrix', checks=False)
-
-    nn = NearestNeighbors(metric='precomputed', n_neighbors=n_neighbors)
-    nn.fit(dist_z)
-    nn.kneighbors()
-    radius = nn.kneighbors()[0]
-    radius = np.nextafter(radius[:, -1], 0)
-
-    nn = NearestNeighbors(algorithm='brute', n_neighbors=n_neighbors)
-    nn.fit(x)
-    ind = nn.radius_neighbors(radius=radius, return_distance=False)
-    nx = np.array([i.size for i in ind])
-
-    nn.fit(y)
-    ind = nn.radius_neighbors(radius=radius, return_distance=False)
-    ny = np.array([i.size for i in ind])
-
-    mi = digamma(n_samples) + digamma(n_neighbors) - np.mean(digamma(nx + 1)) - np.mean(digamma(ny + 1))
-
-    return max(0, mi)
-
-
-def compute_mi_cc_2(x, y, n_neighbors):
-    n_samples = len(y)
-    sample_inds = np.arange(n_samples).reshape(-1, 1)
-
-    dist_x = squareform(pdist(x), force='tomatrix', checks=False)
-    dist_y = squareform(pdist(y), force='tomatrix', checks=False)
-    dist_z = np.maximum(dist_x, dist_y)
-
-    nn = NearestNeighbors(metric='precomputed', n_neighbors=n_neighbors, n_jobs=3)
-    nn.fit(dist_z)
-    nn.kneighbors()
-    ind_z = nn.kneighbors(return_distance=False)
-
-    rx = np.max(dist_x[sample_inds, ind_z], axis=1).reshape(-1, 1)
-    nx = np.count_nonzero(dist_x < rx, axis=1)
-
-    ry = np.max(dist_y[sample_inds, ind_z], axis=1).reshape(-1, 1)
-    ny = np.count_nonzero(dist_y < ry, axis=1)
-
-    mi = digamma(n_samples) + digamma(n_neighbors) - np.mean(digamma(nx)) - np.mean(digamma(ny)) - 1 / n_neighbors
-
-    return max(0, mi)
-
-# x1 = np.random.randn(100, 10)
-# x2 = np.random.randn(100, 1)
-# x = np.hstack((x1, x2))
-# y = np.sum(x1, axis=1).reshape(-1, 1)
-# y = np.random.randn(100, 1)
-# y = np.random.normal(-2, 1, 1000)
-# print(compute_mi_cc_1(x1, y, 3))
-# print(compute_mi_cc_2(x1, y, 3))
-# print(mutual_info_regression(x, y))
+def compute_likelihood(data, graph):
+    data += np.random.random_sample(data.shape) * 1e-10
+    result = np.zeros(np.shape(data)[1])
+    indep = 0
+    for v in nx.nodes(graph):
+        parents = list(graph.predecessors(v))
+        y = data[:, v].reshape(-1, 1)
+        if len(parents) == 0:
+            indep += 1
+        else:
+            x = data[:, parents]
+            result[v] = mi(x, y, 3)
+    M = len(data)
+    penalty = log(M) / 2 * indep
+    return result, penalty
