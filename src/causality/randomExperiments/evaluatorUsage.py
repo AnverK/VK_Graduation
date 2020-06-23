@@ -9,7 +9,7 @@ from collections import defaultdict
 # ====================================================================================================================
 from causality.randomExperiments.Generator import Generator
 
-short_metrics_p, long_metrics_p = utils.read_data(dataset_name='feed_top_ab_tests_pool_dataset_new.csv', shift=True)
+short_metrics_p, long_metrics_p = utils.read_data(dataset_name='feed_top_ab_tests_pool_big_dataset.csv', shift=True)
 short_metrics = short_metrics_p[:, :, 0]
 long_metrics = long_metrics_p[:, :, 0]
 
@@ -24,15 +24,13 @@ long_metrics = np.delete(long_metrics, removed_long, axis=1)
 
 # ====================================================================================================================
 
-# Run experiment generator. Currently each value from generator returns distances in undirected graph to each short
-# metric.
+# Run experiment generator with several distances
 
 # ====================================================================================================================
 
 envGenerator = Generator(short_metrics, long_metrics)
 all_dists = defaultdict(lambda: {i: 0 for i in range(short_metrics.shape[1])})
-# sum_dists = {i: 0 for i in range(short_metrics.shape[1])}
-# sum_disconnections = {i: 0 for i in range(short_metrics.shape[1])}
+
 for k, all_stats in enumerate(envGenerator):
     print(k)
     for stat_name, stat in all_stats.items():
@@ -44,8 +42,3 @@ for k, all_stats in enumerate(envGenerator):
             print(stat_name, {k: v for k, v in sorted(stat.items(), key=lambda item: item[1])})
     if k == 1000:
         break
-    # print({k: v for k, v in reversed(sorted(sum_disconnections.items(), key=lambda item: item[1]))})
-    # sum_dists = {i: sum_dists[i] + dists[i] for i in range(short_metrics.shape[1])}
-    # sum_disconnections = {i: sum_disconnections[i] + disconnections[i] for i in range(short_metrics.shape[1])}
-# print({k: v for k, v in sorted(sum_dists.items(), key=lambda item: item[1])})
-# print({k: v for k, v in reversed(sorted(sum_disconnections.items(), key=lambda item: item[1]))})
