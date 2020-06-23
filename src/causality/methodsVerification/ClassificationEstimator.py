@@ -1,7 +1,7 @@
 import networkx as nx
 
 
-class GraphVerifier:
+class ClassificationEstimator:
 
     def __init__(self):
         self._stat = dict()
