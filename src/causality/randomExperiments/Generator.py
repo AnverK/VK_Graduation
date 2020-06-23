@@ -18,7 +18,7 @@ class Generator:
     def __next__(self):
         n_samples, n_features = self.X.shape
 
-        n_used = np.random.randint(6, n_features + 1)
+        n_used = np.random.randint(8, n_features + 1)
         used_metrics_ind = np.random.choice(n_features, n_used, replace=False)
         used_metrics = self.X[:, used_metrics_ind]
 
@@ -28,7 +28,7 @@ class Generator:
         metrics = np.hstack((noised_target, noised_metrics))
         metrics = metrics[np.random.choice(n_samples, n_samples)]
 
-        model = CausalGraphBuilder(algorithm='fci+', p_value=self.sig_level, num_cores=4)
+        model = CausalGraphBuilder(algorithm='fci+', p_value=self.sig_level)
         model.fit(metrics)
 
         converter = PagConverter(model.get_edges(), n_used + 1)
