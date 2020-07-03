@@ -7,7 +7,7 @@ class PagDrawer:
         pass
 
     @staticmethod
-    def draw(edges, n_nodes, title, graph_path, labels=None, colors=None):
+    def draw(edges, n_nodes, title="", graph_path=None, labels=None, colors=None):
         if labels is None:
             labels = list(map(str, range(n_nodes)))
         if colors is None:
@@ -28,4 +28,4 @@ class PagDrawer:
             edge.attr['dir'] = 'both'
             edge.attr['arrowhead'] = PagEdge._orient_pag(edge_info.head_type)
             edge.attr['arrowtail'] = PagEdge._orient_pag(edge_info.tail_type)
-        G.draw(graph_path, prog='dot')
+        return G.draw(graph_path, prog='dot', format='png')
