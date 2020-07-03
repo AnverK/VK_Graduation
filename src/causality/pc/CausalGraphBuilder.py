@@ -101,17 +101,14 @@ class CausalGraphBuilder:
                            verbose=verbose,
                            numCores=self.num_cores)
             self.edges = self._from_r_graph_to_edges(res)
-        try:
-            self.sepset = self.extract_sepsets(res)
-        except Exception:
-            self.sepset = None
+        self.sepset = self.extract_sepsets(res)
 
     def get_edges(self):
         assert self.edges is not None, 'Graph should be built by fit() function'
         return self.edges
 
     def get_sepsets(self):
-        assert self.sepset is not None, 'Separation sets are not calculated in fit() function'
+        assert self.sepset is not None, 'Graph should be built by fit() function'
         return self.sepset
 
     def extract_sepsets(self, res):

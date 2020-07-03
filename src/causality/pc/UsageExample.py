@@ -12,7 +12,7 @@ import utils
 
 # ====================================================================================================================
 
-short_metrics_p, long_metrics_p = utils.read_data(dataset_name='feed_top_ab_tests_pool_big_dataset.csv', shift=True)
+short_metrics_p, long_metrics_p = utils.read_data(dataset_name='feed_top_ab_tests_pool_dataset_new.csv', shift=True)
 short_metrics = short_metrics_p[:, :, 0]
 long_metrics = long_metrics_p[:, :, 0]
 metrics = np.hstack((long_metrics, short_metrics))
@@ -28,7 +28,7 @@ n_long_metrics = long_metrics.shape[1]
 
 p_value = 1e-2
 raw_log_path = os.path.join('pcalg_logs', 'example.log')
-builder = CausalGraphBuilder(algorithm='pc', p_value=p_value, num_cores=1)
+builder = CausalGraphBuilder(algorithm='fci', p_value=p_value, num_cores=1, log_path=raw_log_path)
 builder.fit(metrics)
 
 # ====================================================================================================================
@@ -63,14 +63,14 @@ PagDrawer.draw(builder.get_edges(), metrics.shape[1], graph_title, graph_path, l
 
 # ====================================================================================================================
 
-# parser = LogParser(raw_log_path, p_value=p_value, labels=labels)
-#
-# print(parser.edge_existence(0, 1))
-# print(parser.edge_existence('long_0', 'long_1'))
-#
-# # note, edge_direction is order-dependent!
-# print(parser.edge_direction(4, 0))
-# print(parser.edge_direction('long_0', 'long_1'))
-#
-# fetched_log_path = os.path.join('pcalg_logs', 'fetched_example.log')
-# parser.get_fetched_log(fetched_log_path)
+parser = LogParser(raw_log_path, p_value=p_value, labels=labels)
+
+print(parser.edge_existence(0, 1))
+print(parser.edge_existence('long_0', 'long_1'))
+
+# note, edge_direction is order-dependent!
+print(parser.edge_direction(4, 0))
+print(parser.edge_direction('long_0', 'long_1'))
+
+fetched_log_path = os.path.join('pcalg_logs', 'fetched_example.log')
+parser.get_fetched_log(fetched_log_path)
