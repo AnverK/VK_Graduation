@@ -3,7 +3,7 @@ from causality.pc.pag.PagEdge import PagEdge, ArrowType
 
 
 class EdgeOrientation:
-    def __init__(self, skeleton, sep_sets, indep_test_func=None, p_value=0, n_nodes=None):
+    def __init__(self, skeleton, sep_sets, indep_test_func=None, threshold=0, n_nodes=None):
         if n_nodes is None:
             n_nodes = nx.number_of_nodes(skeleton)
         self.n_nodes = n_nodes
@@ -12,7 +12,7 @@ class EdgeOrientation:
         self.pag = nx.to_edgelist(self.skeleton)
         self.pag = list(map(lambda edge: PagEdge(edge[0], edge[1], ArrowType.CIRCLE, ArrowType.CIRCLE), self.pag))
         self.indep_test_func = indep_test_func
-        self.p_value = p_value
+        self.threshold = threshold
 
     def orient_colliders(self, safe=True):
         edge_types = dict(map(lambda edge:
@@ -28,7 +28,7 @@ class EdgeOrientation:
                     if y in sep_set:
                         continue
                     if safe and self.indep_test_func(x, z, list(sep_set)) - \
-                            self.indep_test_func(x, z, list(sep_set | {y})) > self.p_value:
+                            self.indep_test_func(x, z, list(sep_set | {y})) > self.threshold:
                         edge_types[(x, y)] = ArrowType.ARROW
                         edge_types[(z, y)] = ArrowType.ARROW
         for pag_edge in self.pag:
@@ -172,6 +172,17 @@ class EdgeOrientation:
                 changed |= self.rule_2(edge_types)
                 changed |= self.rule_3(edge_types)
 
+        if pc:
+            for pag_edge in self.pag:
+                if edge_types[(pag_edge.v_from, pag_edge.v_to)] == ArrowType.CIRCLE and \
+                        edge_types[(pag_edge.v_to, pag_edge.v_from)] == ArrowType.CIRCLE:
+                    edge_types[(pag_edge.v_from, pag_edge.v_to)] = ArrowType.ARROW
+                    edge_types[(pag_edge.v_to, pag_edge.v_from)] = ArrowType.ARROW
+                    continue
+                if edge_types[(pag_edge.v_from, pag_edge.v_to)] == ArrowType.CIRCLE:
+                    edge_types[(pag_edge.v_from, pag_edge.v_to)] = ArrowType.NONE
+                if edge_types[(pag_edge.v_to, pag_edge.v_from)] == ArrowType.CIRCLE:
+                    edge_types[(pag_edge.v_to, pag_edge.v_from)] = ArrowType.NONE
         for pag_edge in self.pag:
             pag_edge.head_type = edge_types[(pag_edge.v_from, pag_edge.v_to)]
             pag_edge.tail_type = edge_types[(pag_edge.v_to, pag_edge.v_from)]
